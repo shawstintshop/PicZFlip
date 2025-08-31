@@ -1,0 +1,22 @@
+# Dependencies and build
+node_modules/
+dist/
+.build/
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Firebase functions env
+functions/.env
+functions/.env.*
+!functions/.env.example
+
+# Firebase logs
+firebase-debug.log
+firebase-debug.*.log
+
+# Misc
+.DS_Store
+*.local
