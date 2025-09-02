@@ -1,0 +1,39 @@
+{
+  "name": "piczflip",
+  "version": "1.0.0",
+  "description": "The most comprehensive item identification and marketplace research platform",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:functions\" \"npm run dev:web\"",
+    "dev:functions": "firebase emulators:start --only functions,firestore,storage",
+    "dev:web": "cd web && npm run dev",
+    "dev:emulators": "firebase emulators:start --only functions,firestore,storage,hosting",
+    "build": "npm run build:functions && npm run build:web",
+    "build:functions": "cd functions && npm run build",
+    "build:web": "cd web && npm run build",
+    "deploy": "firebase deploy",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "setup": "npm install && cd functions && npm install && cd ../web && npm install",
+    "test": "npm run test:functions && npm run test:web",
+    "test:functions": "cd functions && npm test",
+    "test:web": "cd web && npm test"
+  },
+  "keywords": [
+    "marketplace",
+    "search",
+    "flipping",
+    "resale",
+    "ai",
+    "vision",
+    "pricing"
+  ],
+  "author": "PicZFlip Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
