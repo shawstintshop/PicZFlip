@@ -22,10 +22,16 @@ export declare function batchWrite(operations: Array<{
     data?: any;
 }>): Promise<void>;
 export declare function runTransaction<T>(updateFunction: (transaction: admin.firestore.Transaction) => Promise<T>): Promise<T>;
-export declare function createQuery<T>(collection: string, constraints?: Array<admin.firestore.WhereFilterOp | admin.firestore.OrderByDirection>): admin.firestore.Query<T>;
+interface WhereConstraint {
+    field: string;
+    op: admin.firestore.WhereFilterOp;
+    value: any;
+}
+type QueryConstraint = WhereConstraint | string;
+export declare function createQuery<T>(collection: string, constraints?: QueryConstraint[]): admin.firestore.Query<T>;
 export declare function paginateQuery<T>(query: admin.firestore.Query<T>, pageSize: number, startAfter?: admin.firestore.DocumentSnapshot): Promise<{
     data: T[];
-    nextPageToken?: string;
+    nextPageToken: string | undefined;
     hasMore: boolean;
 }>;
 export declare class FirestoreError extends Error {
@@ -34,4 +40,5 @@ export declare class FirestoreError extends Error {
     constructor(message: string, code: string, originalError?: any | undefined);
 }
 export declare function handleFirestoreError(error: any): never;
+export {};
 //# sourceMappingURL=firestore.d.ts.map

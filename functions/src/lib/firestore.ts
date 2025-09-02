@@ -69,9 +69,17 @@ export async function runTransaction<T>(
 }
 
 // Query builders
+interface WhereConstraint {
+  field: string;
+  op: admin.firestore.WhereFilterOp;
+  value: any;
+}
+
+type QueryConstraint = WhereConstraint | string;
+
 export function createQuery<T>(
   collection: string,
-  constraints: Array<admin.firestore.WhereFilterOp | admin.firestore.OrderByDirection> = []
+  constraints: QueryConstraint[] = []
 ): admin.firestore.Query<T> {
   let query: admin.firestore.Query<T> = db.collection(collection) as any;
   
@@ -95,7 +103,7 @@ export async function paginateQuery<T>(
   startAfter?: admin.firestore.DocumentSnapshot
 ): Promise<{
   data: T[];
-  nextPageToken?: string;
+  nextPageToken: string | undefined;
   hasMore: boolean;
 }> {
   let paginatedQuery = query.limit(pageSize);
@@ -108,7 +116,7 @@ export async function paginateQuery<T>(
   const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   
   const hasMore = snapshot.docs.length === pageSize;
-  const nextPageToken = hasMore ? snapshot.docs[snapshot.docs.length - 1].id : undefined;
+  const nextPageToken: string | undefined = hasMore ? snapshot.docs[snapshot.docs.length - 1].id : undefined;
   
   return { data, nextPageToken, hasMore };
 }

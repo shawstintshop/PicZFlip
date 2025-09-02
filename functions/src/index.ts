@@ -151,8 +151,7 @@ export const api = onRequest(async (req: any, res: any) => {
           return res.status(404).json({ error: "Source not found" });
         }
 
-        const adapterManager = new AdapterManager();
-        const adapter = await adapterManager.getAdapter(source.adapter);
+        const adapter = await AdapterManager.getAdapter(source.adapter);
         
         const results = await adapter.search(query, itemData || {}, source);
         

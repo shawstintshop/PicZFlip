@@ -9,9 +9,8 @@ import { db, now } from '../../lib/firestore.js';
 import { log, err } from '../../lib/logger.js';
 import { ErrorHandler } from '../../lib/errorHandler.js';
 export class MainOrchestrator {
-    errorHandler;
     constructor() {
-        this.errorHandler = new ErrorHandler();
+        // Constructor can be empty since we use static methods
     }
     async processPhotoAnalysis(imageBuffer, uid, analysisId) {
         const startTime = Date.now();
@@ -147,7 +146,7 @@ export class MainOrchestrator {
         }
         catch (error) {
             err(`Stage ${stageName} failed:`, error);
-            await this.errorHandler.handleStageError(stageName, error);
+            await ErrorHandler.handleStageError(stageName, error);
             throw error;
         }
     }

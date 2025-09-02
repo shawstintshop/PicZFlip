@@ -1,5 +1,4 @@
 export declare class MainOrchestrator {
-    private errorHandler;
     constructor();
     processPhotoAnalysis(imageBuffer: Buffer, uid: string, analysisId: string): Promise<any>;
     private runStage;
