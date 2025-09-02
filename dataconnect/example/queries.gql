@@ -1,0 +1,23 @@
+mutation CreateNewTag @auth(level: USER) {
+  tag_insert(data: {name: "new tag"})
+}
+
+query ListPublicImages @auth(level: PUBLIC) {
+  images(where: {isPublic: {eq: true}}) {
+    id
+    imageUrl
+    caption
+  }
+}
+
+mutation UpdateUserBio($bio: String!) @auth(level: USER) {
+  user_update(key: {id_expr: "auth.uid"}, data: {bio: $bio})
+}
+
+query GetMyAlbums @auth(level: USER) {
+  albums(where: {creatorId: "auth.uid"}) {
+    id
+    name
+    description
+  }
+}

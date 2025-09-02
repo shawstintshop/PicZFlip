@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="PicZFlip - The most comprehensive item identification and marketplace research platform. Search 200+ websites with AI-powered analysis." />
+    <meta name="keywords" content="marketplace, search, flipping, resale, AI, vision, pricing, eBay, Amazon, Poshmark" />
+    <meta name="author" content="PicZFlip Team" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://piczflip.com/" />
+    <meta property="og:title" content="PicZFlip - Complete Marketplace Search Engine" />
+    <meta property="og:description" content="AI-powered marketplace research platform. Search 200+ websites instantly." />
+    <meta property="og:image" content="https://piczflip.com/og-image.jpg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://piczflip.com/" />
+    <meta property="twitter:title" content="PicZFlip - Complete Marketplace Search Engine" />
+    <meta property="twitter:description" content="AI-powered marketplace research platform. Search 200+ websites instantly." />
+    <meta property="twitter:image" content="https://piczflip.com/og-image.jpg" />
+
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    
+    <title>PicZFlip - Complete Marketplace Search Engine</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Loading state -->
+    <div id="loading" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
+      <div class="text-center">
+        <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">Loading PicZFlip</h2>
+        <p class="text-gray-600">Preparing your marketplace research platform...</p>
+      </div>
+    </div>
+    
+    <script>
+      // Hide loading screen when app is ready
+      window.addEventListener('load', () => {
+        const loading = document.getElementById('loading');
+        if (loading) {
+          loading.style.opacity = '0';
+          setTimeout(() => {
+            loading.style.display = 'none';
+          }, 300);
+        }
+      });
+    </script>
+  </body>
+</html>

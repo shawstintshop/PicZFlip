@@ -1,0 +1,32 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users to read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow users to manage their own analyses
+    match /identifications/{docId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // Allow users to manage their own listings
+    match /listings/{docId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // Allow read access to cached item data
+    match /items/{itemId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only server can write
+    }
+    
+    // Allow read access to pricing data
+    match /pricing/{itemId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only server can write
+    }
+  }
+}

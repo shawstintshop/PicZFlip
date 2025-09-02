@@ -1,0 +1,457 @@
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
+import { ENV } from '../env.js';
+import { log, err } from './logger.js';
+import { VisionAnalysisResult } from './vision.js';
+
+export interface GeminiAnalysisResult {
+  productIdentification: {
+    productName: string;
+    brand: string;
+    model: string;
+    category: string;
+    subcategory: string;
+    confidence: number;
+    reasoning: string;
+  };
+  marketingInfo: {
+    suggestedTitle: string;
+    description: string;
+    keyFeatures: string[];
+    condition: 'new' | 'used' | 'refurbished' | 'for-parts';
+    estimatedAge: string;
+  };
+  pricingInsights: {
+    estimatedValueRange: {
+      low: number;
+      high: number;
+      currency: string;
+    };
+    factors: string[];
+    comparableItems: string[];
+  };
+  listingOptimization: {
+    recommendedKeywords: string[];
+    categoryMapping: {
+      ebay: string;
+      amazon: string;
+      facebook: string;
+    };
+    shippingNotes: string[];
+  };
+  metadata: {
+    analysisVersion: string;
+    processingTime: number;
+    confidenceScore: number;
+  };
+}
+
+export class GeminiService {
+  private model: GenerativeModel;
+  private readonly maxRetries = 3;
+  private readonly retryDelay = 2000;
+
+  constructor() {
+    if (!ENV.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is required for Gemini service');
+    }
+
+    const genAI = new GoogleGenerativeAI(ENV.GEMINI_API_KEY);
+    this.model = genAI.getGenerativeModel({ 
+      model: 'gemini-1.5-flash',
+      generationConfig: {
+        temperature: 0.1, // Lower temperature for more consistent results
+        topP: 0.8,
+        topK: 40,
+        maxOutputTokens: 2048,
+      }
+    });
+  }
+
+  /**
+   * Analyze product using Gemini AI with Vision API data as context
+   */
+  async analyzeProduct(
+    imageBuffer: Buffer, 
+    visionResult: VisionAnalysisResult,
+    userContext?: {
+      knownBrand?: string;
+      knownCategory?: string;
+      additionalInfo?: string;
+    }
+  ): Promise<GeminiAnalysisResult> {
+    const startTime = Date.now();
+
+    try {
+      log('Starting Gemini AI product analysis', {
+        visionLabels: visionResult.labels.length,
+        visionObjects: visionResult.objects.length,
+        hasText: visionResult.text.fullText.length > 0,
+        hasBrands: visionResult.brands.length > 0
+      });
+
+      // Prepare the image for Gemini
+      const imagePart = {
+        inlineData: {
+          data: imageBuffer.toString('base64'),
+          mimeType: 'image/jpeg'
+        }
+      };
+
+      // Create comprehensive prompt with Vision API context
+      const prompt = this.buildAnalysisPrompt(visionResult, userContext);
+
+      // Execute the analysis with retry logic
+      const result = await this.executeWithRetry(async () => {
+        const response = await this.model.generateContent([prompt, imagePart]);
+        return response.response.text();
+      });
+
+      // Parse the structured response
+      const analysis = this.parseGeminiResponse(result);
+      
+      const processingTime = Date.now() - startTime;
+      analysis.metadata.processingTime = processingTime;
+
+      log('Gemini AI analysis completed', {
+        processingTime,
+        productName: analysis.productIdentification.productName,
+        confidence: analysis.productIdentification.confidence,
+        estimatedValue: analysis.pricingInsights.estimatedValueRange
+      });
+
+      return analysis;
+
+    } catch (error: any) {
+      const processingTime = Date.now() - startTime;
+      err('Gemini AI analysis failed', {
+        error: error.message,
+        stack: error.stack,
+        processingTime
+      });
+      
+      // Return fallback analysis based on Vision data
+      return this.createFallbackAnalysis(visionResult, processingTime);
+    }
+  }
+
+  /**
+   * Generate marketplace listing content
+   */
+  async generateListingContent(
+    analysis: GeminiAnalysisResult,
+    platform: 'ebay' | 'amazon' | 'facebook' | 'mercari',
+    customizations?: {
+      condition?: string;
+      priceRange?: { min: number; max: number };
+      shippingMethod?: string;
+      returnPolicy?: string;
+    }
+  ): Promise<{
+    title: string;
+    description: string;
+    keywords: string[];
+    categoryId: string;
+    suggestedPrice: number;
+  }> {
+    try {
+      log('Generating listing content for platform', { platform });
+
+      const prompt = this.buildListingPrompt(analysis, platform, customizations);
+      
+      const result = await this.executeWithRetry(async () => {
+        const response = await this.model.generateContent(prompt);
+        return response.response.text();
+      });
+
+      return this.parseListingResponse(result, platform);
+
+    } catch (error: any) {
+      err('Listing generation failed', { error: error.message, platform });
+      
+      // Return basic listing based on analysis data
+      return this.createFallbackListing(analysis, platform);
+    }
+  }
+
+  private buildAnalysisPrompt(
+    visionResult: VisionAnalysisResult, 
+    userContext?: any
+  ): string {
+    const contextInfo = [
+      `Vision API detected labels: ${visionResult.labels.map(l => `${l.description} (${l.confidence}%)`).join(', ')}`,
+      `Detected objects: ${visionResult.objects.map(o => `${o.name} (${Math.round(o.score * 100)}%)`).join(', ')}`,
+      visionResult.text.fullText ? `Visible text: "${visionResult.text.fullText}"` : '',
+      `Detected brands: ${visionResult.brands.map(b => `${b.description} (${Math.round(b.score * 100)}%)`).join(', ')}`,
+      userContext?.knownBrand ? `User-specified brand: ${userContext.knownBrand}` : '',
+      userContext?.knownCategory ? `User-specified category: ${userContext.knownCategory}` : '',
+      userContext?.additionalInfo ? `Additional context: ${userContext.additionalInfo}` : ''
+    ].filter(Boolean).join('\n');
+
+    return `
+You are an expert product identification and marketplace listing specialist. Analyze this product image and provide detailed insights for resale purposes.
+
+Context from Google Vision API:
+${contextInfo}
+
+Please analyze the image and provide a comprehensive product assessment in the following JSON format:
+
+{
+  "productIdentification": {
+    "productName": "Specific product name with model/version if identifiable",
+    "brand": "Brand name",
+    "model": "Model number or specific variant",
+    "category": "Primary product category",
+    "subcategory": "More specific subcategory",
+    "confidence": 85,
+    "reasoning": "Explanation of how you identified this product"
+  },
+  "marketingInfo": {
+    "suggestedTitle": "Optimized listing title (80 chars max)",
+    "description": "Detailed product description highlighting key selling points",
+    "keyFeatures": ["feature1", "feature2", "feature3"],
+    "condition": "new|used|refurbished|for-parts",
+    "estimatedAge": "Approximate age or release timeframe"
+  },
+  "pricingInsights": {
+    "estimatedValueRange": {
+      "low": 50,
+      "high": 100,
+      "currency": "USD"
+    },
+    "factors": ["factors affecting price"],
+    "comparableItems": ["similar products to research"]
+  },
+  "listingOptimization": {
+    "recommendedKeywords": ["seo", "keywords", "for", "search"],
+    "categoryMapping": {
+      "ebay": "eBay category path",
+      "amazon": "Amazon category",
+      "facebook": "Facebook Marketplace category"
+    },
+    "shippingNotes": ["Important shipping considerations"]
+  }
+}
+
+Focus on accuracy and provide realistic price estimates based on current market conditions. If uncertain about any aspect, indicate lower confidence and explain your reasoning.
+`;
+  }
+
+  private buildListingPrompt(
+    analysis: GeminiAnalysisResult,
+    platform: string,
+    customizations?: any
+  ): string {
+    return `
+Create an optimized marketplace listing for ${platform} based on this product analysis:
+
+Product: ${analysis.productIdentification.productName}
+Brand: ${analysis.productIdentification.brand}
+Category: ${analysis.productIdentification.category}
+Condition: ${customizations?.condition || analysis.marketingInfo.condition}
+Price Range: $${customizations?.priceRange?.min || analysis.pricingInsights.estimatedValueRange.low} - $${customizations?.priceRange?.max || analysis.pricingInsights.estimatedValueRange.high}
+
+Platform-specific requirements for ${platform}:
+${this.getPlatformRequirements(platform)}
+
+Generate a JSON response with:
+{
+  "title": "Platform-optimized title",
+  "description": "Compelling product description with key selling points",
+  "keywords": ["relevant", "search", "terms"],
+  "categoryId": "appropriate category identifier",
+  "suggestedPrice": 75
+}
+
+Make the listing compelling while staying accurate and following ${platform} best practices.
+`;
+  }
+
+  private getPlatformRequirements(platform: string): string {
+    const requirements = {
+      ebay: 'eBay: 80 char title limit, detailed condition description, return policy mention',
+      amazon: 'Amazon: Focus on brand/model in title, bullet points for features, competitive pricing',
+      facebook: 'Facebook: Casual tone, local pickup options, honest condition assessment',
+      mercari: 'Mercari: Clear photos mention, fair pricing, shipping options'
+    };
+
+    return requirements[platform as keyof typeof requirements] || 'Standard marketplace listing format';
+  }
+
+  private async executeWithRetry<T>(fn: () => Promise<T>): Promise<T> {
+    let lastError: Error;
+
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      try {
+        return await fn();
+      } catch (error: any) {
+        lastError = error;
+        
+        // Don't retry on authentication errors
+        if (error.message?.includes('API_KEY') || error.status === 401) {
+          throw error;
+        }
+
+        if (attempt < this.maxRetries) {
+          const delay = this.retryDelay * attempt;
+          log(`Gemini API retry attempt ${attempt}/${this.maxRetries} after ${delay}ms`, {
+            error: error.message
+          });
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    throw lastError!;
+  }
+
+  private parseGeminiResponse(response: string): GeminiAnalysisResult {
+    try {
+      // Extract JSON from response (remove any markdown formatting)
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No JSON found in response');
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]);
+      
+      // Validate required fields and provide defaults
+      return {
+        productIdentification: {
+          productName: parsed.productIdentification?.productName || 'Unknown Product',
+          brand: parsed.productIdentification?.brand || 'Unknown',
+          model: parsed.productIdentification?.model || '',
+          category: parsed.productIdentification?.category || 'General',
+          subcategory: parsed.productIdentification?.subcategory || '',
+          confidence: Math.min(100, Math.max(0, parsed.productIdentification?.confidence || 50)),
+          reasoning: parsed.productIdentification?.reasoning || 'Automated analysis'
+        },
+        marketingInfo: {
+          suggestedTitle: parsed.marketingInfo?.suggestedTitle || parsed.productIdentification?.productName || 'Item for Sale',
+          description: parsed.marketingInfo?.description || 'Quality pre-owned item in good condition.',
+          keyFeatures: Array.isArray(parsed.marketingInfo?.keyFeatures) ? parsed.marketingInfo.keyFeatures : [],
+          condition: ['new', 'used', 'refurbished', 'for-parts'].includes(parsed.marketingInfo?.condition) 
+            ? parsed.marketingInfo.condition : 'used',
+          estimatedAge: parsed.marketingInfo?.estimatedAge || 'Unknown age'
+        },
+        pricingInsights: {
+          estimatedValueRange: {
+            low: Math.max(1, parsed.pricingInsights?.estimatedValueRange?.low || 10),
+            high: Math.max(1, parsed.pricingInsights?.estimatedValueRange?.high || 50),
+            currency: parsed.pricingInsights?.estimatedValueRange?.currency || 'USD'
+          },
+          factors: Array.isArray(parsed.pricingInsights?.factors) ? parsed.pricingInsights.factors : [],
+          comparableItems: Array.isArray(parsed.pricingInsights?.comparableItems) ? parsed.pricingInsights.comparableItems : []
+        },
+        listingOptimization: {
+          recommendedKeywords: Array.isArray(parsed.listingOptimization?.recommendedKeywords) 
+            ? parsed.listingOptimization.recommendedKeywords : [],
+          categoryMapping: parsed.listingOptimization?.categoryMapping || {
+            ebay: 'Other',
+            amazon: 'Other',
+            facebook: 'Other'
+          },
+          shippingNotes: Array.isArray(parsed.listingOptimization?.shippingNotes) 
+            ? parsed.listingOptimization.shippingNotes : []
+        },
+        metadata: {
+          analysisVersion: '1.0.0',
+          processingTime: 0, // Will be set by caller
+          confidenceScore: parsed.productIdentification?.confidence || 50
+        }
+      };
+    } catch (error: any) {
+      err('Failed to parse Gemini response', { error: error.message, response });
+      throw new Error(`Failed to parse AI response: ${error.message}`);
+    }
+  }
+
+  private parseListingResponse(response: string, _platform: string): any {
+    try {
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No JSON found in listing response');
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]);
+      
+      return {
+        title: parsed.title || 'Item for Sale',
+        description: parsed.description || 'Quality item in good condition.',
+        keywords: Array.isArray(parsed.keywords) ? parsed.keywords : [],
+        categoryId: parsed.categoryId || 'other',
+        suggestedPrice: Math.max(1, parsed.suggestedPrice || 10)
+      };
+    } catch (error: any) {
+      err('Failed to parse listing response', { error: error.message, response });
+      throw new Error(`Failed to parse listing response: ${error.message}`);
+    }
+  }
+
+  private createFallbackAnalysis(visionResult: VisionAnalysisResult, processingTime: number): GeminiAnalysisResult {
+    const topLabel = visionResult.labels[0];
+    const topObject = visionResult.objects[0];
+    const detectedBrand = visionResult.brands[0];
+
+    return {
+      productIdentification: {
+        productName: topObject?.name || topLabel?.description || 'Unknown Item',
+        brand: detectedBrand?.description || 'Unknown',
+        model: '',
+        category: topLabel?.description || 'General',
+        subcategory: '',
+        confidence: Math.max(topLabel?.confidence || 0, topObject?.score ? Math.round(topObject.score * 100) : 0),
+        reasoning: 'Fallback analysis based on computer vision detection'
+      },
+      marketingInfo: {
+        suggestedTitle: `${detectedBrand?.description || ''} ${topObject?.name || topLabel?.description || 'Item'}`.trim(),
+        description: `Quality pre-owned ${topLabel?.description || 'item'} in good condition.`,
+        keyFeatures: visionResult.labels.slice(0, 3).map(l => l.description),
+        condition: 'used' as const,
+        estimatedAge: 'Unknown age'
+      },
+      pricingInsights: {
+        estimatedValueRange: {
+          low: 10,
+          high: 50,
+          currency: 'USD'
+        },
+        factors: ['Condition assessment needed', 'Market research required'],
+        comparableItems: []
+      },
+      listingOptimization: {
+        recommendedKeywords: visionResult.labels.slice(0, 5).map(l => l.description.toLowerCase()),
+        categoryMapping: {
+          ebay: 'Other',
+          amazon: 'Other',
+          facebook: 'Other'
+        },
+        shippingNotes: ['Standard packaging recommended']
+      },
+      metadata: {
+        analysisVersion: '1.0.0-fallback',
+        processingTime,
+        confidenceScore: 30
+      }
+    };
+  }
+
+  private createFallbackListing(analysis: GeminiAnalysisResult, _platform: string): any {
+    return {
+      title: analysis.marketingInfo.suggestedTitle.substring(0, 80),
+      description: analysis.marketingInfo.description,
+      keywords: analysis.listingOptimization.recommendedKeywords,
+      categoryId: 'other',
+      suggestedPrice: Math.round((analysis.pricingInsights.estimatedValueRange.low + analysis.pricingInsights.estimatedValueRange.high) / 2)
+    };
+  }
+}
+
+// Singleton instance
+let geminiServiceInstance: GeminiService | null = null;
+
+export function getGeminiService(): GeminiService {
+  if (!geminiServiceInstance) {
+    geminiServiceInstance = new GeminiService();
+  }
+  return geminiServiceInstance;
+}
