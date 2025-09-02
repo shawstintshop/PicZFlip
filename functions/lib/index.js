@@ -12,7 +12,7 @@ setGlobalOptions({
     region: ENV.REGION,
     maxInstances: 10,
     timeoutSeconds: 540,
-    memory: "1GB"
+    memory: "1GiB"
 });
 // Initialize Firebase Admin
 if (!admin.apps.length) {
