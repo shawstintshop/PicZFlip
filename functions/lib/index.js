@@ -12,7 +12,7 @@ setGlobalOptions({
     region: ENV.REGION,
     maxInstances: 10,
     timeoutSeconds: 540,
-    memory: "1GB"
+    memory: "1GiB"
 });
 // Initialize Firebase Admin
 if (!admin.apps.length) {
@@ -126,8 +126,7 @@ export const api = onRequest(async (req, res) => {
                 if (!source) {
                     return res.status(404).json({ error: "Source not found" });
                 }
-                const adapterManager = new AdapterManager();
-                const adapter = await adapterManager.getAdapter(source.adapter);
+                const adapter = await AdapterManager.getAdapter(source.adapter);
                 const results = await adapter.search(query, itemData || {}, source);
                 return res.json({
                     sourceId,

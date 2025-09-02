@@ -42,7 +42,7 @@ export declare abstract class BaseAdapter {
     /**
      * Validate search parameters
      */
-    protected validateSearchParams(query: string, itemData: any): void;
+    protected validateSearchParams(query: string, _itemData?: any): void;
     /**
      * Extract condition from text
      */

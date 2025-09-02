@@ -53,7 +53,6 @@ export async function batchWrite(operations) {
 export async function runTransaction(updateFunction) {
     return db.runTransaction(updateFunction);
 }
-// Query builders
 export function createQuery(collection, constraints = []) {
     let query = db.collection(collection);
     constraints.forEach(constraint => {
