@@ -71,7 +71,7 @@ export abstract class BaseAdapter {
   /**
    * Validate search parameters
    */
-  protected validateSearchParams(query: string, itemData: any): void {
+  protected validateSearchParams(query: string, _itemData: any): void {
     if (!query || query.trim().length === 0) {
       throw new Error('Search query cannot be empty');
     }

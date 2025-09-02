@@ -115,26 +115,29 @@ export const api = onRequest(async (req, res) => {
             const token = req.headers.authorization?.replace("Bearer ", "");
             if (!token)
                 return res.status(401).json({ error: "Unauthorized" });
-            const { sourceId, query, itemData } = req.body;
+            const { sourceId, query, itemData: _itemData } = req.body;
             if (!sourceId || !query) {
                 return res.status(400).json({ error: "Source ID and query required" });
             }
             try {
-                const { AdapterManager } = await import("./lib/adapterManager.js");
+                // TODO: Implement adapter manager
+                // const { AdapterManager } = await import("./lib/adapterManager.js");
                 const { getSourceById } = await import("./lib/sourceRegistry.js");
                 const source = getSourceById(sourceId);
                 if (!source) {
                     return res.status(404).json({ error: "Source not found" });
                 }
-                const adapterManager = new AdapterManager();
-                const adapter = await adapterManager.getAdapter(source.adapter);
-                const results = await adapter.search(query, itemData || {}, source);
+                // TODO: Implement AdapterManager
+                // const adapterManager = new AdapterManager();
+                // const adapter = await adapterManager.getAdapter(source.adapter);
+                // const results = await adapter.search(query, itemData || {}, source);
                 return res.json({
+                    results: [],
+                    message: "Search functionality not yet implemented",
                     sourceId,
                     sourceName: source.name,
                     query,
-                    results,
-                    resultCount: results.length
+                    resultCount: 0
                 });
             }
             catch (error) {
