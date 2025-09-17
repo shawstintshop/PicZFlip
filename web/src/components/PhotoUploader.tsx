@@ -95,41 +95,41 @@ export function PhotoUploader({ onAnalysisStart, className = '' }: PhotoUploader
   };
 
   return (
-    <div className={`w-full max-w-2xl mx-auto ${className}`}>
+    <div className={`w-full max-w-2xl mx-auto space-y-6 ${className}`}>
       {!selectedImage ? (
         <div
           {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+          className={`cursor-pointer rounded-3xl border border-dashed border-slate-300/80 bg-slate-50/80 p-10 text-center transition ${
             isDragActive
-              ? 'border-blue-400 bg-blue-50'
-              : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+              ? 'border-slate-400 bg-slate-100'
+              : 'hover:border-slate-400 hover:bg-slate-100'
           }`}
         >
           <input {...getInputProps()} />
-          
+
           <div className="space-y-4">
-            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white shadow">
               {isDragActive ? (
-                <Upload className="w-8 h-8 text-blue-600" />
+                <Upload className="h-7 w-7 text-slate-500" />
               ) : (
-                <Camera className="w-8 h-8 text-gray-400" />
+                <Camera className="h-7 w-7 text-slate-400" />
               )}
             </div>
-            
+
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="mb-2 text-lg font-semibold text-slate-900">
                 {isDragActive ? 'Drop your image here' : 'Upload an image'}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-sm text-slate-500">
                 {isDragActive
                   ? 'Release to upload'
                   : 'Drag & drop an image, or click to select'}
               </p>
             </div>
-            
+
             <button
               type="button"
-              className="btn btn-primary"
+              className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:translate-y-0.5 hover:bg-slate-800"
               onClick={(e) => {
                 e.stopPropagation();
                 const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -141,54 +141,54 @@ export function PhotoUploader({ onAnalysisStart, className = '' }: PhotoUploader
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Image Preview */}
           <div className="relative">
             <img
               src={preview!}
               alt="Preview"
-              className="w-full h-64 object-cover rounded-lg shadow-lg"
+              className="h-64 w-full rounded-3xl object-cover shadow-lg"
             />
             <button
               onClick={removeImage}
-              className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 transition-colors"
+              className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-500 shadow-md transition hover:bg-slate-100"
             >
-              <X className="w-4 h-4 text-gray-600" />
+              <X className="h-4 w-4" />
             </button>
           </div>
-          
+
           {/* Image Info */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="flex items-center space-x-3">
-              <ImageIcon className="w-5 h-5 text-gray-400" />
+          <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4">
+            <div className="flex items-center gap-3">
+              <ImageIcon className="h-5 w-5 text-slate-400" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="truncate text-sm font-medium text-slate-900">
                   {selectedImage.name}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-slate-500">
                   {(selectedImage.size / 1024 / 1024).toFixed(2)} MB
                 </p>
               </div>
             </div>
           </div>
-          
+
           {/* Action Buttons */}
-          <div className="flex space-x-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
               onClick={removeImage}
-              className="btn btn-secondary flex-1"
+              className="inline-flex flex-1 items-center justify-center rounded-full border border-slate-200/80 bg-white px-5 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-100"
               disabled={isUploading}
             >
               Choose Different Image
             </button>
             <button
               onClick={startAnalysis}
-              className="btn btn-primary flex-1"
+              className="inline-flex flex-1 items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:translate-y-0.5 hover:bg-slate-800 disabled:opacity-60"
               disabled={isUploading}
             >
               {isUploading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   Starting Analysis...
                 </>
               ) : (
@@ -196,11 +196,11 @@ export function PhotoUploader({ onAnalysisStart, className = '' }: PhotoUploader
               )}
             </button>
           </div>
-          
+
           {/* Tips */}
-          <div className="text-sm text-gray-500 text-center">
-            <p>💡 Tip: Ensure good lighting and clear focus for best results</p>
-            <p>📱 Works great with photos from your phone or camera</p>
+          <div className="text-center text-xs text-slate-500">
+            <p>💡 Crisp lighting and a clean background helps our AI lock on instantly.</p>
+            <p>📱 Works perfectly with mobile uploads up to 10MB.</p>
           </div>
         </div>
       )}
