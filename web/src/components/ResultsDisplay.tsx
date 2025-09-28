@@ -1,4 +1,5 @@
 import { TrendingUp, DollarSign, Globe, Clock, CheckCircle } from 'lucide-react';
+import { FlipButton } from './FlipButton';
 
 interface ResultsDisplayProps {
   analysis: any;
@@ -7,7 +8,31 @@ interface ResultsDisplayProps {
 export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
   if (!analysis) return null;
 
-  const { item, searchResults, pricing, copy } = analysis;
+  // Handle both legacy orchestrator format and new enhanced analysis format
+  const isEnhanced = analysis.type === 'enhanced' || analysis.visionResult || analysis.geminiResult;
+  
+  let item, searchResults, pricing, copy, productInfo, geminiInfo;
+  
+  if (isEnhanced) {
+    // Enhanced analysis format
+    productInfo = analysis.geminiResult?.productIdentification || analysis.summary;
+    geminiInfo = analysis.geminiResult;
+    pricing = analysis.geminiResult?.pricingInsights || { estimatedValueRange: analysis.summary?.estimatedValue };
+    copy = analysis.listings;
+    
+    // For compatibility, create item from enhanced data
+    item = {
+      category: productInfo?.category || 'Unknown',
+      brand: productInfo?.brand || 'Unknown',
+      productName: productInfo?.productName || 'Unknown Item',
+      confidence: productInfo?.confidence || 0,
+      condition: geminiInfo?.marketingInfo?.condition || 'used'
+    };
+  } else {
+    // Legacy orchestrator format
+    ({ item, searchResults, pricing, copy } = analysis);
+  }
+  
   const successfulSearches = searchResults?.filter((r: any) => r.success) || [];
   const totalItems = searchResults?.reduce((sum: number, r: any) => sum + r.items.length, 0) || 0;
 
@@ -46,7 +71,8 @@ export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
             <DollarSign className="w-6 h-6 text-purple-600" />
           </div>
           <div className="text-2xl font-bold text-purple-600">
-            {pricing?.medianPrice ? `$${pricing.medianPrice}` : 'N/A'}
+            {pricing?.medianPrice ? `${pricing.medianPrice}` : 
+             pricing?.estimatedValueRange ? `${Math.round((pricing.estimatedValueRange.low + pricing.estimatedValueRange.high) / 2)}` : 'N/A'}
           </div>
           <div className="text-sm text-gray-600">Median Price</div>
         </div>
@@ -97,25 +123,31 @@ export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
             <div className="text-center">
               <p className="text-sm text-gray-500 mb-1">Low Price</p>
               <p className="text-2xl font-bold text-green-600">
-                ${pricing.lowPrice || 'N/A'}
+                ${pricing.lowPrice || pricing.estimatedValueRange?.low || 'N/A'}
               </p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-gray-500 mb-1">Median Price</p>
+              <p className="text-sm text-gray-500 mb-1">Estimated Value</p>
               <p className="text-2xl font-bold text-blue-600">
-                ${pricing.medianPrice || 'N/A'}
+                ${pricing.medianPrice || 
+                  (pricing.estimatedValueRange ? Math.round((pricing.estimatedValueRange.low + pricing.estimatedValueRange.high) / 2) : 'N/A')}
               </p>
             </div>
             <div className="text-center">
               <p className="text-sm text-gray-500 mb-1">High Price</p>
               <p className="text-2xl font-bold text-red-600">
-                ${pricing.highPrice || 'N/A'}
+                ${pricing.highPrice || pricing.estimatedValueRange?.high || 'N/A'}
               </p>
             </div>
           </div>
           {pricing.sampleSize && (
             <p className="text-sm text-gray-500 text-center mt-4">
               Based on {pricing.sampleSize} listings
+            </p>
+          )}
+          {pricing.estimatedValueRange && !pricing.sampleSize && (
+            <p className="text-sm text-gray-500 text-center mt-4">
+              AI-powered price estimation based on product analysis
             </p>
           )}
         </div>
@@ -163,6 +195,17 @@ export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* FLIP Button - Community Marketplace Integration */}
+      {analysis.id && pricing?.estimatedValueRange && (
+        <div className="mb-8">
+          <FlipButton
+            analysisId={analysis.id}
+            productName={item?.productName || 'Unknown Item'}
+            estimatedValue={pricing.estimatedValueRange}
+          />
         </div>
       )}
 

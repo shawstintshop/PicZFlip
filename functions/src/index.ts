@@ -250,6 +250,157 @@ export const api = onRequest(async (req: any, res: any) => {
       return res.status(statusCode).json(healthStatus);
     }
 
+    // ==================== COMMUNITY MARKETPLACE ENDPOINTS ====================
+
+    // Create flip item (I want to FLIP this)
+    if (req.method === "POST" && path === "/flip") {
+      const token = req.headers.authorization?.replace("Bearer ", "");
+      if (!token) return res.status(401).json({ error: "Unauthorized" });
+      
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      const uid = decodedToken.uid;
+      
+      const { analysisId, askingPrice } = req.body;
+      if (!analysisId) {
+        return res.status(400).json({ error: "Analysis ID required" });
+      }
+
+      try {
+        const { communityService } = await import("./services/communityService.js");
+        const flipId = await communityService.createFlipItem(analysisId, uid, askingPrice);
+        
+        return res.json({ 
+          flipId,
+          message: "Flip item created successfully",
+          platformListingsGenerated: true
+        });
+      } catch (error: any) {
+        err(`Create flip item failed:`, error);
+        return res.status(500).json({ 
+          error: "Failed to create flip item", 
+          details: error.message 
+        });
+      }
+    }
+
+    // Add wanted item
+    if (req.method === "POST" && path === "/wanted") {
+      const token = req.headers.authorization?.replace("Bearer ", "");
+      if (!token) return res.status(401).json({ error: "Unauthorized" });
+      
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      const uid = decodedToken.uid;
+      
+      const wantedItemData = req.body;
+      
+      try {
+        const { communityService } = await import("./services/communityService.js");
+        const wantedId = await communityService.addWantedItem(uid, wantedItemData);
+        
+        return res.json({ 
+          wantedId,
+          message: "Wanted item added successfully",
+          searchingForMatches: true
+        });
+      } catch (error: any) {
+        err(`Add wanted item failed:`, error);
+        return res.status(500).json({ 
+          error: "Failed to add wanted item", 
+          details: error.message 
+        });
+      }
+    }
+
+    // Get nearby flip items
+    if (req.method === "GET" && path === "/community/nearby") {
+      const token = req.headers.authorization?.replace("Bearer ", "");
+      if (!token) return res.status(401).json({ error: "Unauthorized" });
+      
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      const uid = decodedToken.uid;
+      
+      const maxDistance = parseInt(req.query.distance as string) || 25;
+      
+      try {
+        const { communityService } = await import("./services/communityService.js");
+        const nearbyItems = await communityService.getNearbyFlipItems(uid, maxDistance);
+        
+        return res.json({ 
+          items: nearbyItems,
+          count: nearbyItems.length,
+          maxDistance
+        });
+      } catch (error: any) {
+        err(`Get nearby items failed:`, error);
+        return res.status(500).json({ 
+          error: "Failed to get nearby items", 
+          details: error.message 
+        });
+      }
+    }
+
+    // Generate platform listings for analysis
+    if (req.method === "POST" && path === "/listings/generate") {
+      const token = req.headers.authorization?.replace("Bearer ", "");
+      if (!token) return res.status(401).json({ error: "Unauthorized" });
+      
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      const uid = decodedToken.uid;
+      
+      const { analysisId } = req.body;
+      if (!analysisId) {
+        return res.status(400).json({ error: "Analysis ID required" });
+      }
+
+      try {
+        const { communityService } = await import("./services/communityService.js");
+        const listings = await communityService.generatePlatformListings(analysisId, uid);
+        
+        return res.json({ 
+          listings,
+          message: "Platform listings generated successfully"
+        });
+      } catch (error: any) {
+        err(`Generate listings failed:`, error);
+        return res.status(500).json({ 
+          error: "Failed to generate listings", 
+          details: error.message 
+        });
+      }
+    }
+
+    // Get user notifications
+    if (req.method === "GET" && path === "/notifications") {
+      const token = req.headers.authorization?.replace("Bearer ", "");
+      if (!token) return res.status(401).json({ error: "Unauthorized" });
+      
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      const uid = decodedToken.uid;
+      
+      const limit = parseInt(req.query.limit as string) || 20;
+      
+      try {
+        const snapshot = await db.collection('notifications')
+          .where('userId', '==', uid)
+          .orderBy('createdAt', 'desc')
+          .limit(limit)
+          .get();
+        
+        const notifications = snapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          ...doc.data() 
+        }));
+        
+        return res.json({ notifications });
+      } catch (error: any) {
+        err(`Get notifications failed:`, error);
+        return res.status(500).json({ 
+          error: "Failed to get notifications", 
+          details: error.message 
+        });
+      }
+    }
+
     // Enhanced photo analysis with Vision + Gemini
     if (req.method === "POST" && path === "/analyze/enhanced") {
       const token = req.headers.authorization?.replace("Bearer ", "");

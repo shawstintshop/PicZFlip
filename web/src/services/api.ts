@@ -31,12 +31,26 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
   return response.json();
 }
 
-// Photo Analysis
-export async function analyzePhoto(imageBase64: string) {
-  return apiRequest('/analyze', {
-    method: 'POST',
-    body: JSON.stringify({ image: imageBase64 }),
-  });
+// Photo Analysis - Enhanced with Vision + Gemini AI
+export async function analyzePhoto(imageBase64: string, userContext?: any) {
+  // Try enhanced analysis first (with Vision + Gemini AI)
+  try {
+    return await apiRequest('/analyze/enhanced', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        image: imageBase64,
+        userContext: userContext || {}
+      }),
+    });
+  } catch (error) {
+    console.warn('Enhanced analysis failed, falling back to standard analysis:', error);
+    
+    // Fallback to standard analysis if enhanced fails
+    return apiRequest('/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ image: imageBase64 }),
+    });
+  }
 }
 
 // Get Analysis Results

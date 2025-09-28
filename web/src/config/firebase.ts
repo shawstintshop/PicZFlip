@@ -3,6 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
+import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -22,6 +23,12 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
+
+// Initialize Firebase AI Logic with Gemini Developer API
+export const ai = getAI(app, { backend: new GoogleAIBackend() });
+
+// Create Gemini model instance
+export const geminiModel = getGenerativeModel(ai, { model: "gemini-2.0-flash-exp" });
 
 // Configure functions region
 functions.region = 'us-central1';
