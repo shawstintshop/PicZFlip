@@ -1,4 +1,3 @@
-import { ENV } from '../env.js';
 import { log, err } from './logger.js';
 import { VisionAnalysisResult } from './vision.js';
 import { GeminiAnalysisResult } from './gemini.js';
@@ -13,14 +12,12 @@ export interface GrokConfig {
 export class GrokService {
   private apiKey: string;
   private model: string;
-  private apiEndpoint: string;
   private readonly maxRetries = 3;
   private readonly retryDelay = 2000;
 
   constructor(config?: Partial<GrokConfig>) {
     this.apiKey = config?.apiKey || process.env.GROK_API_KEY || '';
     this.model = config?.model || 'grok-1';
-    this.apiEndpoint = 'https://api.x.ai/v1'; // Placeholder endpoint
     
     if (!this.apiKey) {
       log('Warning: GROK_API_KEY not set. Grok service will not be available.');
