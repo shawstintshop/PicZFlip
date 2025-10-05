@@ -1,0 +1,26 @@
+# Python Requirements for Grok AI Integration
+# Install with: pip install -r requirements.txt
+
+# Jupyter notebook support
+jupyter>=1.0.0
+notebook>=7.0.0
+ipykernel>=6.25.0
+
+# Core dependencies for AI/ML
+numpy>=1.24.0
+pandas>=2.0.0
+pillow>=10.0.0
+
+# HTTP requests and API calls
+requests>=2.31.0
+aiohttp>=3.8.5
+
+# Data validation and parsing
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+
+# Grok XAI package (install from GitHub)
+# Install separately with: pip install git+https://github.com/shawstintshop/grok-xai.git
+
+# Optional: Additional utilities
+typing-extensions>=4.7.0

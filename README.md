@@ -100,6 +100,7 @@ piczflip/
 ### Environment Variables
 - `GOOGLE_VISION_API_KEY` - Google Vision API key
 - `GEMINI_API_KEY` - Gemini AI API key
+- `GROK_API_KEY` - Grok AI API key (optional)
 - `FIREBASE_PROJECT_ID` - Firebase project ID
 
 ### Marketplace Sources
@@ -138,6 +139,30 @@ cd web && npm test
 
 # Integration tests
 npm run test:integration
+```
+
+## 🤖 AI Integration
+
+PicZFlip supports multiple AI providers for product analysis:
+
+### Gemini AI (Default)
+- Set `GEMINI_API_KEY` in your environment
+- Integrated via `functions/src/lib/gemini.ts`
+
+### Grok AI (Experimental)
+- Set `GROK_API_KEY` in your environment
+- Integrated via `functions/src/lib/grok.ts`
+- For experimentation, use the Jupyter notebook at `notebooks/grok_integration.ipynb`
+
+To install Grok dependencies:
+```bash
+pip install -r requirements.txt
+pip install git+https://github.com/shawstintshop/grok-xai.git
+```
+
+To use the Grok notebook:
+```bash
+jupyter notebook notebooks/grok_integration.ipynb
 ```
 
 ## 📈 Performance
