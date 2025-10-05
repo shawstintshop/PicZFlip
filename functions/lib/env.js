@@ -8,7 +8,10 @@ export const ENV = {
     // Gemini AI
     GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
     // Firebase Configuration
-    FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID || '',
+    FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID ||
+        process.env.GOOGLE_CLOUD_PROJECT ||
+        process.env.GCLOUD_PROJECT ||
+        '',
     FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY || '',
     FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL || '',
     // Application Settings
@@ -39,13 +42,20 @@ export const ENV = {
 // Validation
 export function validateEnvironment() {
     const required = [
-        'GOOGLE_VISION_API_KEY',
         'GEMINI_API_KEY',
         'FIREBASE_PROJECT_ID'
     ];
     const missing = required.filter(key => !ENV[key]);
     if (missing.length > 0) {
-        throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+        throw new Error(`Missing required environment variables: ${missing.join(', ')}. Set FIREBASE_PROJECT_ID locally or run \`gcloud config set project <project-id>\` before deploying.`);
+    }
+    const hasVisionCredentials = Boolean(ENV.GOOGLE_VISION_API_KEY || ENV.GOOGLE_APPLICATION_CREDENTIALS);
+    const runningOnGoogleCloud = Boolean(process.env.FUNCTION_TARGET ||
+        process.env.K_SERVICE ||
+        process.env.GOOGLE_CLOUD_PROJECT ||
+        process.env.GCLOUD_PROJECT);
+    if (!hasVisionCredentials && !runningOnGoogleCloud) {
+        throw new Error('Vision API credentials missing. Provide GOOGLE_VISION_API_KEY or GOOGLE_APPLICATION_CREDENTIALS when running locally.');
     }
     if (ENV.NODE_ENV === 'production') {
         if (ENV.JWT_SECRET === 'default-secret-change-in-production') {
