@@ -140,13 +140,31 @@ export class VisionService {
 
     } catch (error: any) {
       const analysisTime = Date.now() - startTime;
+      const permissionDenied =
+        error?.code === 7 ||
+        error?.code === 403 ||
+        error?.status === 'PERMISSION_DENIED' ||
+        /PERMISSION_DENIED|permission denied/.test(error?.message || '');
+
+      if (permissionDenied) {
+        err('Google Cloud Vision permission error', {
+          error: error.message,
+          analysisTime,
+          imageSize: imageBuffer.length
+        });
+
+        throw new Error(
+          'Vision analysis failed: permission denied. Enable the Cloud Vision API and grant the service account Vision permissions in Google Cloud Console.'
+        );
+      }
+
       err('Google Cloud Vision analysis failed', {
         error: error.message,
         stack: error.stack,
         analysisTime,
         imageSize: imageBuffer.length
       });
-      
+
       // Re-throw with additional context
       throw new Error(`Vision analysis failed: ${error.message}`);
     }
