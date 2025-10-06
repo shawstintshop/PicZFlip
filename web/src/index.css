@@ -8,33 +8,33 @@
   }
   
   body {
-    @apply text-gray-900 bg-gray-50;
+    @apply bg-slate-100 text-slate-900;
   }
-  
+
   * {
-    @apply border-gray-200;
+    @apply border-slate-200;
   }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200;
+    @apply inline-flex items-center justify-center rounded-full border border-transparent px-5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
-  
+
   .btn-primary {
-    @apply btn bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+    @apply btn bg-slate-900 text-white shadow-sm hover:bg-slate-800 focus:ring-slate-500;
   }
-  
+
   .btn-secondary {
-    @apply btn bg-white text-gray-700 border-gray-300 hover:bg-gray-50 focus:ring-blue-500;
+    @apply btn border border-slate-300 bg-white text-slate-600 hover:border-slate-400 hover:bg-slate-100 focus:ring-slate-500;
   }
-  
+
   .btn-success {
-    @apply btn bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
+    @apply btn bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500;
   }
-  
+
   .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+    @apply btn bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-500;
   }
   
   .input {
@@ -42,13 +42,13 @@
   }
   
   .card {
-    @apply bg-white overflow-hidden shadow rounded-lg;
+    @apply overflow-hidden rounded-3xl bg-white shadow;
   }
-  
+
   .card-header {
-    @apply px-4 py-5 sm:px-6 border-b border-gray-200;
+    @apply border-b border-slate-200 px-4 py-5 sm:px-6;
   }
-  
+
   .card-body {
     @apply px-4 py-5 sm:p-6;
   }
@@ -74,7 +74,7 @@
   }
   
   .badge-gray {
-    @apply badge bg-gray-100 text-gray-800;
+    @apply badge bg-slate-100 text-slate-800;
   }
 }
 

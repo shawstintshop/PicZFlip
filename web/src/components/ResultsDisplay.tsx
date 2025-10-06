@@ -210,13 +210,13 @@ export function ResultsDisplay({ analysis }: ResultsDisplayProps) {
       </div>
 
       {/* Action Buttons */}
-      <div className="text-center mt-8">
-        <button className="btn btn-primary btn-lg mr-4">
-          <TrendingUp className="w-5 h-5 mr-2" />
-          View Detailed Results
+      <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <button className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:translate-y-0.5 hover:bg-slate-800">
+          <TrendingUp className="h-5 w-5" />
+          View detailed results
         </button>
-        <button className="btn btn-secondary btn-lg">
-          Analyze Another Item
+        <button className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-100">
+          Analyze another item
         </button>
       </div>
     </div>
