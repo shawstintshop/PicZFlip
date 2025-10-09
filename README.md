@@ -101,6 +101,37 @@ piczflip/
 - `npm run dev:functions` - Backend only
 - `npm run dev:web` - Frontend only
 
+## 🌐 Deployment to www.piczflip.com
+
+### Quick Deploy
+```bash
+# Simple deployment script
+./deploy.sh
+```
+
+### Manual Deploy
+```bash
+# Build and deploy everything
+npm run build
+npm run deploy
+
+# Or deploy specific components
+npm run deploy:web      # Web app only
+npm run deploy:functions # Backend only
+```
+
+### Automated Deployment
+The repository includes GitHub Actions for automatic deployment on push to `main` branch.
+Setup instructions in [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+### Custom Domain Setup
+1. Go to [Firebase Console](https://console.firebase.google.com/) → Hosting
+2. Click "Add custom domain" and enter `piczflip.com` and `www.piczflip.com`
+3. Follow Firebase instructions to configure DNS records at your domain registrar
+4. Wait for DNS propagation (up to 48 hours) and SSL certificate issuance
+
+📖 **Detailed deployment guide**: See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete instructions.
+
 > **Cloud deployment tip:** When deploying from Google Cloud Shell or CI, be sure the gcloud CLI is pointed at the correct
 > Firebase project. Run `gcloud config set project <project-id>` (or `firebase use <project-id>`) before `npm run deploy`
 > so the latest analyzer code is uploaded instead of the old cached build.
