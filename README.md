@@ -234,6 +234,15 @@ jupyter notebook notebooks/grok_integration.ipynb
 - **Rate limiting** - Prevents abuse and respects source limits
 - **Input validation** - All user inputs are sanitized
 
+## 📚 Documentation
+
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete deployment guide with step-by-step instructions
+- **[CURSOR_DEPLOY_GUIDE.md](./CURSOR_DEPLOY_GUIDE.md)** - Quick deployment guide for Cursor IDE users
+- **[DEPLOYMENT_ARCHITECTURE.md](./DEPLOYMENT_ARCHITECTURE.md)** - System architecture and deployment flow diagrams
+- **[DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)** - Pre and post-deployment verification checklist
+- **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Common issues and solutions
+- **[GROK_INTEGRATION.md](./GROK_INTEGRATION.md)** - Grok AI integration guide
+
 ## 🤝 Contributing
 
 1. Fork the repository
