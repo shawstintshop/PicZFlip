@@ -14,6 +14,7 @@ export function Layout({ children }: LayoutProps) {
 
   const navigation = [
     { name: 'Home', href: '/', icon: Home },
+    { name: 'Map', href: '/map', icon: History },
     { name: 'History', href: '/history', icon: History },
     { name: 'Profile', href: '/profile', icon: User },
   ];

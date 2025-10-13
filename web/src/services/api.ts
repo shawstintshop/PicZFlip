@@ -55,10 +55,10 @@ export async function getSources() {
 }
 
 // Direct Source Search
-export async function searchSource(sourceId: string, query: string) {
-  return apiRequest(`/sources/${sourceId}/search`, {
+export async function searchSource(sourceId: string, query: string, itemData?: any) {
+  return apiRequest(`/search/source`, {
     method: 'POST',
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ sourceId, query, itemData }),
   });
 }
 
