@@ -27,6 +27,7 @@
   "author": "PicZFlip Team",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "firebase-tools": "^13.0.0"
   }
 }

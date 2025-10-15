@@ -64,6 +64,19 @@ node_modules/
 
 # dotenv environment variables file
 .env
+.env.local
+.env.development
+.env.production
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+ui-debug.log
+
+# Service account keys (NEVER commit these!)
+*-service-account.json
+serviceAccountKey.json
 
 # dataconnect generated files
 .dataconnect
