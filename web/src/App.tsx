@@ -10,6 +10,7 @@ import RegisterPage from './pages/RegisterPage';
 import AnalysisPage from './pages/AnalysisPage';
 import HistoryPage from './pages/HistoryPage';
 import ProfilePage from './pages/ProfilePage';
+import MapPage from './pages/MapPage';
 import './index.css';
 
 // Create a client
@@ -63,6 +64,14 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <ProfilePage />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/map" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <MapPage />
                   </Layout>
                 </ProtectedRoute>
               } />
