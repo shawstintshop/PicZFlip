@@ -93,7 +93,7 @@ export class MainOrchestrator {
 
       // Stage 5: Price Analysis
       analysis = await this.runStage('pricing', async () => {
-        const pricingData = await pricingAgent.analyzePricing(analysis.aggregatedData);
+        const pricingData = await pricingAgent.analyzePricing(analysis.aggregatedData, analysis.item);
         return {
           ...analysis,
           status: 'pricing',

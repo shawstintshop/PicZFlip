@@ -84,3 +84,7 @@ pip-delete-this-directory.txt
 *.egg-info/
 dist/
 build/
+
+# Compiled output
+functions/lib/
+web/dist/
