@@ -61,6 +61,12 @@ piczflip/
 - Firebase CLI
 - Google Cloud account with Vision API enabled
 
+### Configure Google Cloud Vision API
+1. Enable the **Cloud Vision API** for your Google Cloud project in the [Google Cloud Console](https://console.cloud.google.com/apis/library/vision.googleapis.com).
+2. Grant the Firebase project's runtime service account (e.g. `firebase-adminsdk-xxxx@<project-id>.iam.gserviceaccount.com`) the **Cloud Vision API User** role in the [IAM console](https://console.cloud.google.com/iam-admin/iam). This lets deployed Cloud Functions use Vision without additional keys.
+3. For local development you can either download a service account key JSON and set `GOOGLE_APPLICATION_CREDENTIALS` to its path, or create an API key and set `GOOGLE_VISION_API_KEY`.
+4. Deploying from CI? Store the local credentials in your secret manager and expose them as environment variables during the deploy step.
+
 ### Installation
 
 1. **Clone and setup**
@@ -95,11 +101,16 @@ piczflip/
 - `npm run dev:functions` - Backend only
 - `npm run dev:web` - Frontend only
 
+> **Cloud deployment tip:** When deploying from Google Cloud Shell or CI, be sure the gcloud CLI is pointed at the correct
+> Firebase project. Run `gcloud config set project <project-id>` (or `firebase use <project-id>`) before `npm run deploy`
+> so the latest analyzer code is uploaded instead of the old cached build.
+
 ## 🔧 Configuration
 
 ### Environment Variables
 - `GOOGLE_VISION_API_KEY` - Google Vision API key
 - `GEMINI_API_KEY` - Gemini AI API key
+- `GROK_API_KEY` - Grok AI API key (optional)
 - `FIREBASE_PROJECT_ID` - Firebase project ID
 
 ### Marketplace Sources
@@ -138,6 +149,30 @@ cd web && npm test
 
 # Integration tests
 npm run test:integration
+```
+
+## 🤖 AI Integration
+
+PicZFlip supports multiple AI providers for product analysis:
+
+### Gemini AI (Default)
+- Set `GEMINI_API_KEY` in your environment
+- Integrated via `functions/src/lib/gemini.ts`
+
+### Grok AI (Experimental)
+- Set `GROK_API_KEY` in your environment
+- Integrated via `functions/src/lib/grok.ts`
+- For experimentation, use the Jupyter notebook at `notebooks/grok_integration.ipynb`
+
+To install Grok dependencies:
+```bash
+pip install -r requirements.txt
+pip install git+https://github.com/shawstintshop/grok-xai.git
+```
+
+To use the Grok notebook:
+```bash
+jupyter notebook notebooks/grok_integration.ipynb
 ```
 
 ## 📈 Performance

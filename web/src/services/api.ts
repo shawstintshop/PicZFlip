@@ -55,18 +55,30 @@ export async function getSources() {
 }
 
 // Direct Source Search
-export async function searchSource(sourceId: string, query: string) {
-  return apiRequest(`/sources/${sourceId}/search`, {
+export async function searchSource(sourceId: string, query: string, itemData?: any) {
+  return apiRequest(`/search/source`, {
     method: 'POST',
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ sourceId, query, itemData }),
   });
 }
 
 // User Profile Management
-export async function updateUserProfile(profileData: any) {
+export async function getProfile() {
+  return apiRequest('/profile');
+}
+
+export async function updateProfile(profileData: any) {
   return apiRequest('/profile', {
     method: 'PUT',
     body: JSON.stringify(profileData),
+  });
+}
+
+// Enhanced Analysis with Vision + Gemini
+export async function analyzePhotoEnhanced(imageBase64: string, userContext?: any) {
+  return apiRequest('/analyze/enhanced', {
+    method: 'POST',
+    body: JSON.stringify({ image: imageBase64, userContext }),
   });
 }
 
